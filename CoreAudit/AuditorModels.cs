@@ -8,22 +8,28 @@ namespace CoreAudit
         TIndex Id { get; set; }
     }
 
-    public interface ISubject
+    public interface ICoreAuditSubject<TSubjectType> where TSubjectType : struct, IConvertible
     {
-        string BuildReportString();    
+        TSubjectType Type();
+        string BuildMessage();    
     }
 
-    public abstract class AuditEntryBase<TIndex, TTypeEnum, TMessage> : IIdentifier<TIndex> where TTypeEnum : struct, IConvertible
+    public interface IDatabaseWrapper<TDataAccessObject>
+    {
+        TDataAccessObject Database { get; set; }
+    }
+
+    public abstract class AuditEntryBase<TIndex, TTypeEnum> : IIdentifier<TIndex> where TTypeEnum : struct, IConvertible
     {
         public virtual TIndex Id { get; set; }
         public virtual TTypeEnum Type { get; set; }
-        public virtual TMessage Message { get; set; }
+        public virtual string Message { get; set; }
     }
 
-    public interface IAuditManager<TReport, TSubject, TIndex, TSubjectType, TMessage> where TSubject : ISubject where TReport : AuditEntryBase<TIndex, TSubjectType, TMessage> 
+    public interface IAuditManager<TReport, TIndex, TSubjectType> where TReport : AuditEntryBase<TIndex, TSubjectType> 
         where TSubjectType : struct, IConvertible
     {
-        void Audit(TSubject subject);
-        List<TReport> Report(TSubject type);
+        void Audit(ICoreAuditSubject<TSubjectType> subject);
+        List<TReport> Report(TSubjectType type);
     }
 }
